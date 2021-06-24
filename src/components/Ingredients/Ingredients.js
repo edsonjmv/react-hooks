@@ -29,9 +29,16 @@ const Ingredients = () => {
   };
 
   const removeIngredientHandler = (ingredientId) => {
-    setIngredients((prevState) =>
-      prevState.filter(({ id }) => ingredientId !== id)
-    );
+    fetch(
+      `https://react-hooks-889a0-default-rtdb.firebaseio.com/ingredients/${ingredientId}.json`,
+      {
+        method: 'DELETE'
+      }
+    ).then(() => {
+      setIngredients((prevState) =>
+        prevState.filter(({ id }) => ingredientId !== id)
+      );
+    });
   };
 
   const filterIngredientsHandler = useCallback(
