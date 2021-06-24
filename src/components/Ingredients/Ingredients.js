@@ -1,12 +1,25 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useReducer, useCallback } from 'react';
 
 import IngredientForm from './IngredientForm';
 import IngredientList from './IngredientList';
 import ErrorModal from '../UI/ErrorModal';
 import Search from './Search';
 
+const ingredientsReducer = (currentIngredients, action) => {
+  switch (action.type) {
+    case 'SET':
+      return action.ingredients;
+    case 'ADD':
+      return [...currentIngredients, action.ingredient];
+    case 'DELETE':
+      return currentIngredients.filter(({ id }) => id !== action.id);
+    default:
+      throw new Error('Should not get there!');
+  }
+};
+
 const Ingredients = () => {
-  const [ingredients, setIngredients] = useState([]);
+  const [ingredients, dispatch] = useReducer(ingredientsReducer, []);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState();
 
@@ -23,13 +36,13 @@ const Ingredients = () => {
       .then((response) => response.json())
       .then((responseData) => {
         setIsLoading(false);
-        setIngredients((prevState) => [
-          ...prevState,
-          {
+        dispatch({
+          type: 'ADD',
+          ingredient: {
             ...ingredient,
             id: responseData.name
           }
-        ]);
+        });
       });
   };
 
@@ -43,9 +56,7 @@ const Ingredients = () => {
     )
       .then(() => {
         setIsLoading(false);
-        setIngredients((prevState) =>
-          prevState.filter(({ id }) => ingredientId !== id)
-        );
+        dispatch({ type: 'DELETE', id: ingredientId });
       })
       .catch(() => {
         setIsLoading(false);
@@ -54,7 +65,7 @@ const Ingredients = () => {
   };
 
   const filterIngredientsHandler = useCallback(
-    (ingredients) => setIngredients(ingredients),
+    (ingredients) => dispatch({ type: 'SET', ingredients }),
     []
   );
 
