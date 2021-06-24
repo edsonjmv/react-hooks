@@ -2,12 +2,16 @@ import React, { useState, useCallback } from 'react';
 
 import IngredientForm from './IngredientForm';
 import IngredientList from './IngredientList';
+import ErrorModal from '../UI/ErrorModal';
 import Search from './Search';
 
 const Ingredients = () => {
   const [ingredients, setIngredients] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState();
 
   const addIngredientHandler = (ingredient) => {
+    setIsLoading(true);
     fetch(
       'https://react-hooks-889a0-default-rtdb.firebaseio.com/ingredients.json',
       {
@@ -18,6 +22,7 @@ const Ingredients = () => {
     )
       .then((response) => response.json())
       .then((responseData) => {
+        setIsLoading(false);
         setIngredients((prevState) => [
           ...prevState,
           {
@@ -29,16 +34,23 @@ const Ingredients = () => {
   };
 
   const removeIngredientHandler = (ingredientId) => {
+    setIsLoading(true);
     fetch(
       `https://react-hooks-889a0-default-rtdb.firebaseio.com/ingredients/${ingredientId}.json`,
       {
         method: 'DELETE'
       }
-    ).then(() => {
-      setIngredients((prevState) =>
-        prevState.filter(({ id }) => ingredientId !== id)
-      );
-    });
+    )
+      .then(() => {
+        setIsLoading(false);
+        setIngredients((prevState) =>
+          prevState.filter(({ id }) => ingredientId !== id)
+        );
+      })
+      .catch(() => {
+        setIsLoading(false);
+        setError('Something went wrong!');
+      });
   };
 
   const filterIngredientsHandler = useCallback(
@@ -48,7 +60,11 @@ const Ingredients = () => {
 
   return (
     <div className="App">
-      <IngredientForm onAddIngredient={addIngredientHandler} />
+      {error && <ErrorModal onClose={() => setError(null)}>{error}</ErrorModal>}
+      <IngredientForm
+        onAddIngredient={addIngredientHandler}
+        loading={isLoading}
+      />
 
       <section>
         <Search onLoadIngredients={filterIngredientsHandler} />
