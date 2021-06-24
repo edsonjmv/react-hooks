@@ -11,8 +11,7 @@ const IngredientForm = React.memo((props) => {
 
   const submitHandler = (event) => {
     event.preventDefault();
-    // ...
-    console.log(formState);
+    props.onAddIngredient(formState);
   };
 
   const inputChangeHandler = ({ target }, controlName) => {
